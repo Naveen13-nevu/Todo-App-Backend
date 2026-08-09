@@ -69,10 +69,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error",
-                "An unexpected error occurred. Please try again later.", request);
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
+        ex.printStackTrace(); // also logs it, in case we want to check logs later
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error("Internal Server Error")
+                .message(ex.getClass().getName() + ": " + ex.getMessage()) // TEMP: real error for debugging
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String error, String message,
@@ -86,4 +94,6 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(status).body(response);
     }
+
+
 }
